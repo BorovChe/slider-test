@@ -49,6 +49,4 @@ const handleSliderChange = (e) => {
   }
 };
 
-slideBtnRef.forEach((btn) => {
-  btn.addEventListener("click", handleSliderChange);
-});
+slideBtnRef.forEach((btn) => btn.addEventListener("click", handleSliderChange));

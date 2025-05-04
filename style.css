@@ -83,7 +83,7 @@ body {
   max-width: 160px;
 }
 
-.image {
+.image-wrapper {
   width: 160px;
   height: 160px;
 
@@ -94,7 +94,19 @@ body {
   font-size: 48px;
 
   border-radius: 4px;
-  background-color: darkred;
+  background-color: transparent;
+}
+
+.image {
+  background-color: transparent;
+}
+
+.image-hover {
+  animation: fade-in 0.9s ease-in forwards;
+}
+
+.image-hover-out {
+  animation: fade-in 0.9s ease-in forwards;
 }
 
 .slide-btn-nav {
@@ -133,4 +145,36 @@ body {
 
 .indicator-active {
   background-color: black;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+
+  25% {
+    opacity: 0.25;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  75% {
+    opacity: 0.75;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
