@@ -1,52 +1,137 @@
 import { sliderRef } from "./refs.js";
 import slides from "./data.js";
 
-const slideBtnRef = document.querySelectorAll(".slide-btn-nav");
+const slideRefs = document.querySelectorAll(".slide");
 const indicatorsRef = document.querySelectorAll(".indicator");
+const slideImageRefs = document.querySelectorAll(".image");
 
-const slidesLength = slides.length;
+const lastSlidesIndex = slides.length - 1;
+const translate = { default: 0, mobile: 260, desktop: 550 };
 
-const DEFAULT_SLIDE_COUNT = 0;
-const DEFAULT_TRANSLATE = 0;
-const TRANSLATE_STEP = 550;
+let slidesTranslate = translate.default;
+let prevIndex = 0;
+let resizeTimeout;
+let isMobileViewport = window.innerWidth < 1024;
+let translateStep =
+  window.innerWidth < 1024 ? translate.mobile : translate.desktop;
 
-let slideCounter = DEFAULT_SLIDE_COUNT;
-let slidesTranslate = DEFAULT_TRANSLATE;
+let animationInterval;
+let countChangeImages = 0;
 
-indicatorsRef[slideCounter].classList.add("indicator-active");
+const onHandleWindowSize = () => {
+  const viewport = window.innerWidth;
+  isMobileViewport = viewport < 1024;
+  slidesTranslate = translate.default;
 
-const handleSliderChange = (e) => {
-  if (e.target.dataset.direction === "next") {
-    slideCounter += 1;
-    slidesTranslate = slidesTranslate - TRANSLATE_STEP;
-    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  if (isMobileViewport) translateStep = translate.mobile;
+  else translateStep = translate.desktop;
 
-    slideCounter < slidesLength &&
-      indicatorsRef[slideCounter].classList.add("indicator-active");
-    indicatorsRef[slideCounter - 1].classList.remove("indicator-active");
-  } else {
-    slideCounter -= 1;
-    slidesTranslate = slidesTranslate + TRANSLATE_STEP;
-    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  indicatorsRef[0].classList.add("indicator-active");
 
-    slideCounter >= 0 &&
-      indicatorsRef[slideCounter].classList.add("indicator-active");
-    indicatorsRef[slideCounter + 1].classList.remove("indicator-active");
-  }
+  prevIndex !== 0 &&
+    indicatorsRef[prevIndex].classList.remove("indicator-active");
+  sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
 
-  if (slideCounter === slidesLength) {
-    slideCounter = DEFAULT_SLIDE_COUNT;
-    slidesTranslate = DEFAULT_TRANSLATE;
-    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  const slideImages = slides[prevIndex].images;
+  isMobileViewport
+    ? (animationInterval = setInterval(() => {
+        countChangeImages += 1;
 
-    indicatorsRef[slideCounter].classList.add("indicator-active");
-  } else if (slideCounter < 0) {
-    slideCounter = slidesLength - 1;
-    slidesTranslate = -TRANSLATE_STEP * (slidesLength - 1);
-    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+        if (countChangeImages >= slides[prevIndex].images.length)
+          countChangeImages = 0;
 
-    indicatorsRef[slideCounter].classList.add("indicator-active");
+        slideImageRefs[prevIndex].classList.add("image-hover");
+        slideImageRefs[prevIndex].src = slideImages[countChangeImages];
+
+        slideImageRefs[prevIndex].addEventListener("animationend", () => {
+          slideImageRefs[prevIndex].classList.remove("image-hover");
+        });
+      }, 2000))
+    : null;
+};
+
+onHandleWindowSize();
+
+const resizeThrottler = () => {
+  if (!resizeTimeout) {
+    resizeTimeout = setTimeout(() => {
+      resizeTimeout = null;
+      clearInterval(animationInterval);
+      countChangeImages = 0;
+      onHandleWindowSize();
+    }, 200);
   }
 };
 
-slideBtnRef.forEach((btn) => btn.addEventListener("click", handleSliderChange));
+indicatorsRef[0].classList.add("indicator-active");
+
+const handleSliderChange = (currentIndex, e) => {
+  const currentDataAttribute = e.target.dataset.direction;
+
+  if (currentDataAttribute === "next") {
+    indicatorsRef[prevIndex].classList.remove("indicator-active");
+    prevIndex = currentIndex + 1;
+
+    slidesTranslate = slidesTranslate - translateStep;
+    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+
+    if (currentIndex === lastSlidesIndex) {
+      slidesTranslate = translate.default;
+      sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+
+      indicatorsRef[0].classList.add("indicator-active");
+      indicatorsRef[currentIndex].classList.remove("indicator-active");
+
+      prevIndex = 0;
+    }
+
+    currentIndex < lastSlidesIndex &&
+      indicatorsRef[currentIndex + 1].classList.add("indicator-active");
+    indicatorsRef[currentIndex].classList.remove("indicator-active");
+  } else if (currentDataAttribute === "prev") {
+    indicatorsRef[prevIndex].classList.remove("indicator-active");
+    prevIndex = currentIndex - 1;
+
+    slidesTranslate = slidesTranslate + translateStep;
+    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+
+    if (currentIndex === 0) {
+      slidesTranslate = -translateStep * lastSlidesIndex;
+      sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+
+      indicatorsRef[lastSlidesIndex].classList.add("indicator-active");
+      indicatorsRef[currentIndex].classList.remove("indicator-active");
+
+      prevIndex = lastSlidesIndex;
+    }
+
+    indicatorsRef[
+      currentIndex === 0 ? currentIndex : currentIndex - 1
+    ].classList.add("indicator-active");
+    indicatorsRef[currentIndex].classList.remove("indicator-active");
+  }
+};
+
+const handleClickOnIndicator = (currentIndex) => {
+  indicatorsRef[prevIndex].classList.remove("indicator-active");
+  prevIndex = currentIndex;
+
+  slidesTranslate = -translateStep * currentIndex;
+  sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  indicatorsRef[currentIndex].classList.add("indicator-active");
+};
+
+window.addEventListener("resize", resizeThrottler);
+
+slideRefs.forEach((slide, currentIndex) =>
+  slide.addEventListener("click", handleSliderChange.bind(null, currentIndex))
+);
+
+indicatorsRef.forEach((indicator, currentIndex) =>
+  indicator.addEventListener(
+    "click",
+    handleClickOnIndicator.bind(null, currentIndex)
+  )
+);
+
+export { isMobileViewport };

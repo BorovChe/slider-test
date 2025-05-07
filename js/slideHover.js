@@ -1,35 +1,47 @@
 import slides from "./data.js";
+import { isMobileViewport } from "./index.js";
 
-const slideRef = document.querySelectorAll(".slide");
-const slideImageRef = document.querySelectorAll(".image");
+const slideRefs = document.querySelectorAll(".slide");
+const slideImageRefs = document.querySelectorAll(".image");
 
-const DEFAULT_COUNT = 0;
+const ANIMATION_INTERVAL = 2000;
+const DEFAULT_IMAGE_COUNT = 0;
 
-let mouseEnterCount = DEFAULT_COUNT;
+let countChangeImages = DEFAULT_IMAGE_COUNT;
+let animationInterval;
 
-const handleSlideMouseEnter = (i) => {
-  const slideImages = slides[i].images;
+const handleSlideMouseEnter = (currentIndex) => {
+  const slideImages = slides[currentIndex].images;
   const slidesLength = slideImages.length;
-  mouseEnterCount += 1;
 
-  if (mouseEnterCount >= slidesLength) mouseEnterCount = DEFAULT_COUNT;
+  !isMobileViewport
+    ? (animationInterval = setInterval(() => {
+        countChangeImages += 1;
+        if (countChangeImages >= slidesLength)
+          countChangeImages = DEFAULT_IMAGE_COUNT;
 
-  slideImageRef[i].classList.add("image-hover");
-  slideImageRef[i].src = slideImages[mouseEnterCount];
+        slideImageRefs[currentIndex].classList.add("image-hover");
+        slideImageRefs[currentIndex].src = slideImages[countChangeImages];
 
-  slideImageRef[i].addEventListener("animationend", () => {
-    slideImageRef[i].classList.remove("image-hover");
-  });
+        slideImageRefs[currentIndex].addEventListener("animationend", () => {
+          slideImageRefs[currentIndex].classList.remove("image-hover");
+        });
+      }, ANIMATION_INTERVAL))
+    : null;
 };
 
-// const handleSlideMouseLeave = (i) => {
-//   //   slideImageRef[i].classList.remove("image-hover");
-// };
+const handleSlideMouseLeave = () => {
+  clearInterval(animationInterval);
+  countChangeImages = DEFAULT_IMAGE_COUNT;
+};
 
-slideRef.forEach((slide, i) =>
-  slide.addEventListener("mouseenter", handleSlideMouseEnter.bind(null, i))
+slideRefs.forEach((slide, currentIndex) =>
+  slide.addEventListener(
+    "mouseenter",
+    handleSlideMouseEnter.bind(null, currentIndex)
+  )
 );
 
-// slideRef.forEach((slide, i) =>
-//   slide.addEventListener("mouseleave", handleSlideMouseLeave.bind(null, i))
-// );
+slideRefs.forEach((slide) =>
+  slide.addEventListener("mouseleave", handleSlideMouseLeave)
+);

@@ -23,14 +23,14 @@ body {
 .slider-wrapper {
   position: relative;
 
-  width: 800px;
-  height: 400px;
-  padding: 0 140px;
+  width: 420px;
+  height: 200px;
+  padding: 0 90px;
 
   display: flex;
   justify-content: center;
   flex-direction: column;
-  gap: 30px;
+  gap: 10px;
 
   list-style: none;
 
@@ -39,20 +39,42 @@ body {
   overflow: hidden;
 }
 
+@media screen and (min-width: 1024px) {
+  .slider-wrapper {
+    width: 800px;
+    height: 400px;
+    padding: 0 140px;
+
+    gap: 30px;
+  }
+}
+
 .slider {
   display: flex;
-  gap: 30px;
+  gap: 20px;
 
   transition: transform 300ms;
 }
 
+@media screen and (min-width: 1024px) {
+  .slider {
+    gap: 30px;
+  }
+}
+
 .blur {
-  width: 120px;
-  height: 100%;
+  width: 20px;
 
   z-index: 999;
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+}
+
+@media screen and (min-width: 1024px) {
+  .blur {
+    width: 120px;
+    height: 100%;
+  }
 }
 
 .left-blur {
@@ -68,19 +90,34 @@ body {
 }
 
 .slide {
-  min-width: 520px;
-  height: 200px;
+  min-width: 240px;
+  height: 160px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   border-radius: 4px;
+  cursor: pointer;
   background-color: rgb(42, 126, 165);
 }
 
+@media screen and (min-width: 1024px) {
+  .slide {
+    min-width: 520px;
+    height: 200px;
+  }
+}
+
 .description {
-  max-width: 160px;
+  display: none;
+}
+
+@media screen and (min-width: 1024px) {
+  .description {
+    display: block;
+    max-width: 160px;
+  }
 }
 
 .image-wrapper {
@@ -105,12 +142,8 @@ body {
   animation: fade-in 0.9s ease-in forwards;
 }
 
-.image-hover-out {
-  animation: fade-in 0.9s ease-in forwards;
-}
-
 .slide-btn-nav {
-  width: 60px;
+  width: 40px;
   height: 100%;
 
   text-transform: uppercase;
@@ -122,6 +155,12 @@ body {
 
   color: inherit;
   background-color: #332f2fa8;
+}
+
+@media screen and (min-width: 1024px) {
+  .slide-btn-nav {
+    width: 60px;
+  }
 }
 
 .indicators {
@@ -154,27 +193,5 @@ body {
 
   100% {
     opacity: 1;
-  }
-}
-
-@keyframes fade-out {
-  0% {
-    opacity: 1;
-  }
-
-  25% {
-    opacity: 0.25;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-
-  75% {
-    opacity: 0.75;
-  }
-
-  100% {
-    opacity: 0;
   }
 }
