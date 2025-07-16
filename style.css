@@ -155,20 +155,21 @@ body {
 }
 
 .image {
-  opacity: 1;
-  transition: opacity 0.8s ease;
-}
-.image.fade-out {
-  opacity: 0;
+  animation: fade 2.5s linear infinite;
+  animation-delay: 1.25s;
 }
 
-/* .image {
-  background-color: transparent;
+@keyframes fade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
-
-.image-hover {
-  animation: fade-in 0.9s ease-in forwards;
-} */
 
 .nav-btn {
   position: absolute;

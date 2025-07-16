@@ -88,7 +88,7 @@ class SlideItem {
 
   createDynamicImage(dynamicImage) {
     const image = document.createElement("img");
-    image.classList = "image";
+    // image.classList = "image";
     image.width = 160;
     image.height = 160;
     image.src = this.images[dynamicImage];
@@ -104,12 +104,8 @@ class SlideItem {
         this.imageCounter = 0;
       }
 
-      imageRef.classList.add("fade-out");
-      setTimeout(() => {
-        imageRef.src = this.images[this.imageCounter];
-        imageRef.classList.remove("fade-out");
-      }, 800);
-    }, 1600);
+      imageRef.src = this.images[this.imageCounter];
+    }, 2500);
   }
 
   stopImageCarousel() {
@@ -133,11 +129,18 @@ class SlideItem {
 
     if (!this.isMobile) {
       this.stopImageCarousel();
-      slideItem.addEventListener("mouseenter", () =>
-        this.initImageCarousel(imageEl)
-      );
-      slideItem.addEventListener("mouseleave", () => this.stopImageCarousel());
+      slideItem.addEventListener("mouseenter", () => {
+        imageEl.classList.add("image");
+        this.initImageCarousel(imageEl);
+      });
+
+      slideItem.addEventListener("mouseleave", () => {
+        this.stopImageCarousel();
+        imageEl.classList.remove("image");
+      });
     } else {
+      imageEl.classList.add("image");
+
       activeSlideIndex === currentIndex
         ? this.initImageCarousel(imageEl)
         : this.stopImageCarousel();
