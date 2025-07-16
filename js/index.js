@@ -1,137 +1,216 @@
-import { sliderRef } from "./refs.js";
 import slides from "./data.js";
 
-const slideRefs = document.querySelectorAll(".slide");
-const indicatorsRef = document.querySelectorAll(".indicator");
-const slideImageRefs = document.querySelectorAll(".image");
+class SwitchSlide {
+  constructor(sliderRef, slideLength) {
+    this.sliderRef = sliderRef;
+    this.slideLength = slideLength;
+    this.maxIndex = slideLength - 1;
+    this.counter = 0;
 
-const lastSlidesIndex = slides.length - 1;
-const translate = { default: 0, mobile: 260, desktop: 550 };
+    this.indicators = [];
+    this.prevBtn = document.querySelector(".prev-btn");
+    this.nextBtn = document.querySelector(".next-btn");
 
-let slidesTranslate = translate.default;
-let prevIndex = 0;
-let resizeTimeout;
-let isMobileViewport = window.innerWidth < 1024;
-let translateStep =
-  window.innerWidth < 1024 ? translate.mobile : translate.desktop;
-
-let animationInterval;
-let countChangeImages = 0;
-
-const onHandleWindowSize = () => {
-  const viewport = window.innerWidth;
-  isMobileViewport = viewport < 1024;
-  slidesTranslate = translate.default;
-
-  if (isMobileViewport) translateStep = translate.mobile;
-  else translateStep = translate.desktop;
-
-  indicatorsRef[0].classList.add("indicator-active");
-
-  prevIndex !== 0 &&
-    indicatorsRef[prevIndex].classList.remove("indicator-active");
-  sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
-
-  const slideImages = slides[prevIndex].images;
-  isMobileViewport
-    ? (animationInterval = setInterval(() => {
-        countChangeImages += 1;
-
-        if (countChangeImages >= slides[prevIndex].images.length)
-          countChangeImages = 0;
-
-        slideImageRefs[prevIndex].classList.add("image-hover");
-        slideImageRefs[prevIndex].src = slideImages[countChangeImages];
-
-        slideImageRefs[prevIndex].addEventListener("animationend", () => {
-          slideImageRefs[prevIndex].classList.remove("image-hover");
-        });
-      }, 2000))
-    : null;
-};
-
-onHandleWindowSize();
-
-const resizeThrottler = () => {
-  if (!resizeTimeout) {
-    resizeTimeout = setTimeout(() => {
-      resizeTimeout = null;
-      clearInterval(animationInterval);
-      countChangeImages = 0;
-      onHandleWindowSize();
-    }, 200);
+    this.onSlideChange = null;
   }
-};
 
-indicatorsRef[0].classList.add("indicator-active");
+  prev() {
+    this.counter = this.counter > 0 ? this.counter - 1 : this.maxIndex;
+    this.updateSlide();
+    this.updateIndicators();
+  }
 
-const handleSliderChange = (currentIndex, e) => {
-  const currentDataAttribute = e.target.dataset.direction;
+  next() {
+    this.counter = this.counter < this.maxIndex ? this.counter + 1 : 0;
+    this.updateSlide();
+    this.updateIndicators();
+  }
 
-  if (currentDataAttribute === "next") {
-    indicatorsRef[prevIndex].classList.remove("indicator-active");
-    prevIndex = currentIndex + 1;
+  init() {
+    this.prevBtn.addEventListener("click", () => this.prev());
+    this.nextBtn.addEventListener("click", () => this.next());
 
-    slidesTranslate = slidesTranslate - translateStep;
-    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+    this.renderNavigation();
+  }
 
-    if (currentIndex === lastSlidesIndex) {
-      slidesTranslate = translate.default;
-      sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  renderNavigation() {
+    const navContainer = document.createElement("div");
+    navContainer.className = "indicators";
 
-      indicatorsRef[0].classList.add("indicator-active");
-      indicatorsRef[currentIndex].classList.remove("indicator-active");
+    for (let i = 0; i < this.slideLength; i += 1) {
+      const inditator = document.createElement("span");
+      inditator.className = "indicator";
 
-      prevIndex = 0;
+      if (i === 0) inditator.classList.add("indicator-active");
+
+      inditator.addEventListener("click", () => {
+        this.counter = i;
+        this.updateSlide();
+        this.updateIndicators();
+      });
+
+      navContainer.append(inditator);
+      this.indicators.push(inditator);
     }
 
-    currentIndex < lastSlidesIndex &&
-      indicatorsRef[currentIndex + 1].classList.add("indicator-active");
-    indicatorsRef[currentIndex].classList.remove("indicator-active");
-  } else if (currentDataAttribute === "prev") {
-    indicatorsRef[prevIndex].classList.remove("indicator-active");
-    prevIndex = currentIndex - 1;
+    this.sliderRef.parentElement.appendChild(navContainer);
+  }
 
-    slidesTranslate = slidesTranslate + translateStep;
-    sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  updateIndicators() {
+    this.indicators.forEach((indicator, index) => {
+      indicator.classList.toggle("indicator-active", index === this.counter);
+    });
+  }
 
-    if (currentIndex === 0) {
-      slidesTranslate = -translateStep * lastSlidesIndex;
-      sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
+  updateSlide() {
+    const computedStyle = window.getComputedStyle(this.sliderRef);
+    const gap = parseFloat(computedStyle.getPropertyValue("gap"));
 
-      indicatorsRef[lastSlidesIndex].classList.add("indicator-active");
-      indicatorsRef[currentIndex].classList.remove("indicator-active");
+    const slide = this.sliderRef.firstChild;
+    const slideWidth = slide.offsetWidth;
+    const totalOffset = (slideWidth + gap) * this.counter;
 
-      prevIndex = lastSlidesIndex;
+    this.sliderRef.style.transform = `translateX(-${totalOffset}px)`;
+
+    this.onSlideChange?.(this.counter);
+  }
+}
+
+class SlideItem {
+  imageCounter = 0;
+
+  constructor({ description, images }, isMobile) {
+    this.isMobile = isMobile;
+    this.description = description;
+    this.images = images;
+    this.intervalId = null;
+  }
+
+  createDynamicImage(dynamicImage) {
+    const image = document.createElement("img");
+    image.classList = "image";
+    image.width = 160;
+    image.height = 160;
+    image.src = this.images[dynamicImage];
+    image.alt = "Image";
+
+    return image;
+  }
+
+  initImageCarousel(imageRef) {
+    this.intervalId = setInterval(() => {
+      this.imageCounter += 1;
+      if (this.imageCounter >= this.images.length) {
+        this.imageCounter = 0;
+      }
+
+      imageRef.classList.add("fade-out");
+      setTimeout(() => {
+        imageRef.src = this.images[this.imageCounter];
+        imageRef.classList.remove("fade-out");
+      }, 800);
+    }, 1600);
+  }
+
+  stopImageCarousel() {
+    clearInterval(this.intervalId);
+    this.intervalId = null;
+  }
+
+  render(isMobile, currentIndex, activeSlideIndex) {
+    this.isMobile = isMobile;
+
+    const slideItem = document.createElement("li");
+    slideItem.className = "slide";
+    const descr = document.createElement("div");
+    descr.classList = "description";
+    descr.textContent = this.description;
+
+    const imageWrapper = document.createElement("div");
+    imageWrapper.classList = "image-wrapper";
+    const imageEl = this.createDynamicImage(this.imageCounter);
+    imageWrapper.append(imageEl);
+
+    if (!this.isMobile) {
+      this.stopImageCarousel();
+      slideItem.addEventListener("mouseenter", () =>
+        this.initImageCarousel(imageEl)
+      );
+      slideItem.addEventListener("mouseleave", () => this.stopImageCarousel());
+    } else {
+      activeSlideIndex === currentIndex
+        ? this.initImageCarousel(imageEl)
+        : this.stopImageCarousel();
     }
 
-    indicatorsRef[
-      currentIndex === 0 ? currentIndex : currentIndex - 1
-    ].classList.add("indicator-active");
-    indicatorsRef[currentIndex].classList.remove("indicator-active");
+    slideItem.append(descr, imageWrapper);
+    return slideItem;
   }
-};
+}
 
-const handleClickOnIndicator = (currentIndex) => {
-  indicatorsRef[prevIndex].classList.remove("indicator-active");
-  prevIndex = currentIndex;
+class SlideList {
+  constructor(slides) {
+    this.container = null;
+    this.isMobile = window.innerWidth <= 1024;
+    this.slidesData = slides;
+    this.activeIndex = 0;
+    this.slides = slides.map((slide) => new SlideItem(slide, this.isMobile));
 
-  slidesTranslate = -translateStep * currentIndex;
-  sliderRef.style.transform = `translateX(${slidesTranslate}px)`;
-  indicatorsRef[currentIndex].classList.add("indicator-active");
-};
+    window.addEventListener("resize", () => this.handleResize());
+  }
 
-window.addEventListener("resize", resizeThrottler);
+  handleResize() {
+    const currentIsMobile = window.innerWidth <= 1024;
 
-slideRefs.forEach((slide, currentIndex) =>
-  slide.addEventListener("click", handleSliderChange.bind(null, currentIndex))
-);
+    if (currentIsMobile !== this.isMobile) {
+      this.isMobile = currentIsMobile;
+      this.activeIndex = 0;
+      this.container.innerHTML = "";
+      this.render(this.container);
+    }
+  }
 
-indicatorsRef.forEach((indicator, currentIndex) =>
-  indicator.addEventListener(
-    "click",
-    handleClickOnIndicator.bind(null, currentIndex)
-  )
-);
+  render(container) {
+    this.container = container;
 
-export { isMobileViewport };
+    const slidelist = document.createElement("ul");
+    slidelist.className = "slider";
+
+    this.slides.forEach((slide, index) => {
+      slidelist.append(slide.render(this.isMobile, index, this.activeIndex));
+    });
+
+    container.append(slidelist);
+
+    const switchSlider = new SwitchSlide(slidelist, slides.length);
+    switchSlider.init();
+
+    switchSlider.onSlideChange = (index) => {
+      this.activeIndex = index;
+      this.updateSlideActivity();
+    };
+  }
+
+  updateSlideActivity() {
+    const ul = this.container.querySelector(".slider");
+    ul.innerHTML = "";
+
+    this.slides.forEach((slide, index) => {
+      ul.append(slide.render(this.isMobile, index, this.activeIndex));
+    });
+  }
+}
+
+class App {
+  constructor(rootSelector) {
+    this.root = document.querySelector(rootSelector);
+  }
+
+  init() {
+    const slidesList = new SlideList(slides);
+    slidesList.render(this.root);
+  }
+}
+
+const app = new App("#slider-wrapper");
+app.init();

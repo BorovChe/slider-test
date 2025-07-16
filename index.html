@@ -12,18 +12,16 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./style.css" />
-    <script type="module" src="./js/renderSlides.js" defer></script>
     <script type="module" src="./js/index.js" defer></script>
-    <script type="module" src="./js/slideHover.js" defer></script>
   </head>
   <body>
     <div class="container">
-      <div class="slider-wrapper">
-        <div class="left-blur blur"></div>
-        <ul class="slider"></ul>
-        <ul class="indicators"></ul>
-        <div class="right-blur blur"></div>
-      </div>
+      <div id="slider-wrapper" class="slider-wrapper"></div>
+      <div class="left-blur blur"></div>
+      <div class="right-blur blur"></div>
+
+      <button class="nav-btn prev-btn"><</button>
+      <button class="nav-btn next-btn">></button>
     </div>
   </body>
 </html>
