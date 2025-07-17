@@ -90,7 +90,6 @@ class SlideItem {
     const image = document.createElement("img");
     image.width = 160;
     image.height = 160;
-    image.loading = "lazy";
     image.src = this.images[dynamicImage];
     image.alt = "Image";
 
@@ -98,6 +97,15 @@ class SlideItem {
   }
 
   initImageCarousel(imageRef) {
+    if (!this.preloadedImages) {
+      this.preloadedImages = [];
+      this.images.forEach((src) => {
+        const img = new Image();
+        img.src = src;
+        this.preloadedImages.push(img);
+      });
+    }
+
     this.intervalId = setInterval(() => {
       this.imageCounter += 1;
       if (this.imageCounter >= this.images.length) {
@@ -106,16 +114,9 @@ class SlideItem {
 
       const nextSrc = this.images[this.imageCounter];
 
-      const tempImage = new Image();
-      tempImage.src = nextSrc;
-
-      tempImage.onload = () => {
-        imageRef.classList.remove("animate-fade");
-        void imageRef.offsetWidth;
-
-        imageRef.src = nextSrc;
-        imageRef.classList.add("animate-fade");
-      };
+      imageRef.classList.remove("animate-fade");
+      imageRef.src = nextSrc;
+      imageRef.classList.add("animate-fade");
     }, 2500);
   }
 
