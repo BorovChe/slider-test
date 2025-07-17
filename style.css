@@ -154,19 +154,15 @@ body {
   background-color: transparent;
 }
 
-.image {
-  animation: fade 2.5s linear infinite;
-  animation-delay: 1.25s;
+.animate-fade {
+  animation: fade 0.5s ease-in-out;
 }
 
 @keyframes fade {
-  0% {
-    opacity: 1;
-  }
-  50% {
+  from {
     opacity: 0;
   }
-  100% {
+  to {
     opacity: 1;
   }
 }

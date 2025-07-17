@@ -88,9 +88,9 @@ class SlideItem {
 
   createDynamicImage(dynamicImage) {
     const image = document.createElement("img");
-    // image.classList = "image";
     image.width = 160;
     image.height = 160;
+    image.loading = "lazy";
     image.src = this.images[dynamicImage];
     image.alt = "Image";
 
@@ -104,7 +104,18 @@ class SlideItem {
         this.imageCounter = 0;
       }
 
-      imageRef.src = this.images[this.imageCounter];
+      const nextSrc = this.images[this.imageCounter];
+
+      const tempImage = new Image();
+      tempImage.src = nextSrc;
+
+      tempImage.onload = () => {
+        imageRef.classList.remove("animate-fade");
+        void imageRef.offsetWidth;
+
+        imageRef.src = nextSrc;
+        imageRef.classList.add("animate-fade");
+      };
     }, 2500);
   }
 
@@ -130,17 +141,13 @@ class SlideItem {
     if (!this.isMobile) {
       this.stopImageCarousel();
       slideItem.addEventListener("mouseenter", () => {
-        imageEl.classList.add("image");
         this.initImageCarousel(imageEl);
       });
 
       slideItem.addEventListener("mouseleave", () => {
         this.stopImageCarousel();
-        imageEl.classList.remove("image");
       });
     } else {
-      imageEl.classList.add("image");
-
       activeSlideIndex === currentIndex
         ? this.initImageCarousel(imageEl)
         : this.stopImageCarousel();
