@@ -112,10 +112,9 @@ class SlideItem {
         this.imageCounter = 0;
       }
 
-      const nextSrc = this.images[this.imageCounter];
-
       imageRef.classList.remove("animate-fade");
-      imageRef.src = nextSrc;
+      void imageRef.offsetWidth;
+      imageRef.src = this.images[this.imageCounter];
       imageRef.classList.add("animate-fade");
     }, 2500);
   }
