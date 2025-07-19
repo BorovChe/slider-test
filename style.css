@@ -105,6 +105,8 @@ body {
 }
 
 .slide {
+  position: relative;
+
   min-width: 240px;
   height: 160px;
 
@@ -141,6 +143,14 @@ body {
 }
 
 .image-wrapper {
+  position: absolute;
+  top: 50%;
+  right: 40px;
+
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 1s ease;
+
   width: 160px;
   height: 160px;
 
@@ -154,16 +164,14 @@ body {
   background-color: transparent;
 }
 
-.animate-fade {
-  animation: fade 0.5s ease-in-out;
+.image-wrapper.active {
+  opacity: 1;
 }
 
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
+@media screen and (min-width: 1024px) {
+  .image-wrapper {
+    top: 50%;
+    right: 80px;
   }
 }
 
@@ -235,14 +243,4 @@ body {
 
 .indicator-active {
   background-color: black;
-}
-
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
 }

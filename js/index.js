@@ -77,46 +77,36 @@ class SwitchSlide {
 }
 
 class SlideItem {
-  imageCounter = 0;
-
   constructor({ description, images }, isMobile) {
     this.isMobile = isMobile;
     this.description = description;
     this.images = images;
+    this.wrapperList = [];
     this.intervalId = null;
+    this.currentImageindex = 0;
   }
 
-  createDynamicImage(dynamicImage) {
+  createImage(imageSrc) {
     const image = document.createElement("img");
     image.width = 160;
     image.height = 160;
-    image.src = this.images[dynamicImage];
+    image.classList = "image";
+    image.src = imageSrc;
     image.alt = "Image";
 
     return image;
   }
 
-  initImageCarousel(imageRef) {
-    if (!this.preloadedImages) {
-      this.preloadedImages = [];
-      this.images.forEach((src) => {
-        const img = new Image();
-        img.src = src;
-        this.preloadedImages.push(img);
-      });
-    }
+  initImageCarousel(imageList) {
+    this.currentImageindex = 0;
+    this.stopImageCarousel();
 
     this.intervalId = setInterval(() => {
-      this.imageCounter += 1;
-      if (this.imageCounter >= this.images.length) {
-        this.imageCounter = 0;
-      }
-
-      imageRef.classList.remove("animate-fade");
-      void imageRef.offsetWidth;
-      imageRef.src = this.images[this.imageCounter];
-      imageRef.classList.add("animate-fade");
-    }, 2500);
+      imageList[this.currentImageindex].classList.remove("active");
+      this.currentImageindex =
+        (this.currentImageindex + 1) % this.images.length;
+      imageList[this.currentImageindex].classList.add("active");
+    }, 1500);
   }
 
   stopImageCarousel() {
@@ -129,31 +119,40 @@ class SlideItem {
 
     const slideItem = document.createElement("li");
     slideItem.className = "slide";
+
     const descr = document.createElement("div");
     descr.classList = "description";
     descr.textContent = this.description;
+    slideItem.append(descr);
 
-    const imageWrapper = document.createElement("div");
-    imageWrapper.classList = "image-wrapper";
-    const imageEl = this.createDynamicImage(this.imageCounter);
-    imageWrapper.append(imageEl);
+    this.images.forEach((src, i) => {
+      const imageWrapper = document.createElement("div");
+      imageWrapper.classList = "image-wrapper";
+      imageWrapper.append(this.createImage(src));
+      i === 0
+        ? imageWrapper.classList.add("active")
+        : imageWrapper.classList.remove("active");
+      slideItem.append(imageWrapper);
 
-    if (!this.isMobile) {
-      this.stopImageCarousel();
-      slideItem.addEventListener("mouseenter", () => {
-        this.initImageCarousel(imageEl);
-      });
+      this.wrapperList = slideItem.querySelectorAll(".image-wrapper");
 
-      slideItem.addEventListener("mouseleave", () => {
-        this.stopImageCarousel();
-      });
-    } else {
+      if (!this.isMobile) {
+        imageWrapper.addEventListener("mouseenter", () => {
+          this.initImageCarousel(this.wrapperList);
+        });
+
+        imageWrapper.addEventListener("mouseleave", () => {
+          this.stopImageCarousel();
+        });
+      }
+    });
+
+    if (this.isMobile) {
       activeSlideIndex === currentIndex
-        ? this.initImageCarousel(imageEl)
+        ? this.initImageCarousel(this.wrapperList)
         : this.stopImageCarousel();
     }
 
-    slideItem.append(descr, imageWrapper);
     return slideItem;
   }
 }
